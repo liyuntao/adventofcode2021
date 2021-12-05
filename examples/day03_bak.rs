@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind};
+use std::str::Chars;
 
 pub fn read_input(file_name: &str) -> Result<Vec<String>, Error> {
     let path = format!("./input/{}", file_name);
@@ -12,21 +13,19 @@ pub fn read_input(file_name: &str) -> Result<Vec<String>, Error> {
 fn main() {
     let inputs = read_input("day03.txt").unwrap();
     let half_row_count = inputs.len() / 2;
-    let reducer = |mut sum_arr: [usize; 12], n: usize| {
-        (0..12).for_each(|index|
-            sum_arr[index] += (n >> (11 - index)) & 1);
+    let reducer = |mut sum_arr: [usize; 12], chars: Chars| {
+        chars.enumerate()
+            .filter(|(_, char)| *char == '1')
+            .for_each(|(index, _)| sum_arr[index] += 1);
         sum_arr
     };
 
-    let gamma_rate = inputs.iter()
-        .map(|str| usize::from_str_radix(&str, 2).unwrap())
-        .fold([0usize; 12], reducer)
-        .map(|cnt| if cnt > half_row_count { 1 } else { 0 })
-        .iter().enumerate()
-        .fold(0usize, |mut acc, (i, n)| {
-            acc += n << (11 - i);
-            acc
-        });
+    let chars = inputs.iter().map(|str| str.chars())
+        .fold([0usize; 12], reducer);
+    let gramma_rate_str: String = chars.iter()
+        .map(|&cnt| if cnt > half_row_count { '1' } else { '0' })
+        .collect();
+    let gamma_rate = isize::from_str_radix(&gramma_rate_str, 2).unwrap();
     println!("q1={}", gamma_rate * (0b111111111111 ^ gamma_rate));
 
 
