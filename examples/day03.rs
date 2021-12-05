@@ -9,25 +9,44 @@ pub fn read_input(file_name: &str) -> Result<Vec<String>, Error> {
         .collect()
 }
 
+fn get_last_n(inputs: Vec<usize>, total: usize, preserve_major: bool) -> usize {
+    if inputs.len() == 1 {
+        inputs[0]
+    } else {
+        let index = total - 1;
+        let cur_len = inputs.len();
+        let bit1_count = inputs.iter().filter(|&n| (n >> index) & 1 == 1).count();
+        let major_bit = (2 * bit1_count >= cur_len) as usize;
+        let preserve_bit = if preserve_major { major_bit } else { !(major_bit != 0) as usize };
+        let new_inputs = inputs.into_iter()
+            .filter(|&n| (n >> index) & 1 == preserve_bit)
+            .collect();
+        get_last_n(new_inputs, index, preserve_major)
+    }
+}
+
 fn main() {
     let inputs = read_input("day03.txt").unwrap();
+    const N: usize = 12;
     let half_row_count = inputs.len() / 2;
-    let reducer = |mut sum_arr: [usize; 12], n: usize| {
-        (0..12).for_each(|index|
-            sum_arr[index] += (n >> (11 - index)) & 1);
+    let reducer = |mut sum_arr: [usize; N], n: &usize| -> [usize; N] {
+        (0..N).for_each(|index|
+            sum_arr[index] += (n >> (N - 1 - index)) & 1);
         sum_arr
     };
 
-    let gamma_rate = inputs.iter()
+    let input_nums: Vec<usize> = inputs.iter()
         .map(|str| usize::from_str_radix(&str, 2).unwrap())
-        .fold([0usize; 12], reducer)
+        .collect();
+    let gamma_rate = input_nums.iter()
+        .fold([0usize; N], reducer)
         .map(|cnt| if cnt > half_row_count { 1 } else { 0 })
         .iter().enumerate()
         .fold(0usize, |mut acc, (i, n)| {
-            acc += n << (11 - i);
+            acc += n << (N - 1 - i);
             acc
         });
-    println!("q1={}", gamma_rate * (0b111111111111 ^ gamma_rate));
-
-
+    println!("q1={}", gamma_rate * (((1 << N) - 1) ^ gamma_rate));
+    println!("q2={}", get_last_n(input_nums.clone(), N, true)
+        * get_last_n(input_nums, N, false));
 }
