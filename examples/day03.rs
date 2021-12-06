@@ -40,7 +40,7 @@ fn main() {
         .collect();
     let gamma_rate = input_nums.iter()
         .fold([0usize; N], reducer)
-        .map(|cnt| if cnt > half_row_count { 1 } else { 0 })
+        .map(|cnt| (cnt > half_row_count) as usize)
         .iter().enumerate()
         .fold(0usize, |mut acc, (i, n)| {
             acc += n << (N - 1 - i);
