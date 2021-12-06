@@ -11,6 +11,9 @@ pub fn read_input(file_name: &str) -> Result<Vec<i32>, Error> {
 
 fn count_total_incr(inputs: &[i32]) -> usize {
     let len = inputs.len();
+    // inputs.array_windows::<2>()
+    //     .filter(|&arr_win| arr_win[1] > arr_win[0])
+    //     .count()
     inputs[0..len - 1].iter().zip(&inputs[1..len])
         .filter(|tuple| tuple.1 > tuple.0)
         .count()
