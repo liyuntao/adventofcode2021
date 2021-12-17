@@ -1,7 +1,9 @@
+#[warn(unused_imports)]
 
-
+mod day02;
 mod day07;
+mod day09;
 
 fn main() {
-    day07::run();
+    day09::run();
 }
