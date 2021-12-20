@@ -27,25 +27,51 @@ fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>) {
         ).collect();
     (numbers, matrix)
 }
-
+//0 1 2 3 4
 fn q1(s: &str) -> usize {
-    let (inputs, matrix, state_grid) = parse_and_prepare(s);
+    inner(s, false)
+}
+fn q2(s: &str) -> usize {
+    inner(s, true)
+}
+
+fn inner(s: &str, seek_col: bool) -> usize {
+    let (inputs, matrix) = parse_and_prepare(s);
     let matrix_rows = matrix.len();
     let mut state_grid: Vec<Vec<bool>> = vec![vec![false; 5]; matrix_rows];
-    inputs.iter().for_each(|&n| {
+
+    for n in inputs {
         for y in 0..matrix_rows {
             for x in 0..5 {
                 if matrix[y][x] == n {
                     state_grid[y][x] = true;
                 }
+                // do complete-row checking
+                let mut is_all_set = state_grid[y].iter().all(|&mark| mark == true);
+                { // also seek col
+                    let row_start = (y / 5) * 5;
+                    let row_end = row_start + 5;
+                    is_all_set = is_all_set || (row_start..row_end).into_iter()
+                        .all(|y| state_grid[y][x] == true);
+                }
+                if is_all_set {
+                    // using (x, y) seek for a 5*5
+                    let row_start = (y / 5) * 5;
+                    let row_end = row_start + 5;
+                    let mut unmark_sum = 0;
+                    for y in row_start..row_end {
+                        for x in 0..5 {
+                            if state_grid[y][x] == false {
+                                unmark_sum += matrix[y][x];
+                            }
+                        }
+                    }
+                    return n * unmark_sum;
+                }
             }
         }
-    });
-    1
-}
-
-fn q2(s: &str) -> usize {
-    1
+    }
+    0
 }
 
 pub(crate) fn run() {
@@ -82,8 +108,8 @@ mod test {
         assert_eq!(q1(INPUT), 4512);
     }
 
-    // #[test]
-    // fn q2_test() {
-    //     assert_eq!(q2(INPUT), 12);
-    // }
+    #[test]
+    fn q2_test() {
+        assert_eq!(q2(INPUT), 1924);
+    }
 }
