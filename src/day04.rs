@@ -1,40 +1,82 @@
+extern crate regex;
 
-use std::fs::File;
-use std::io::{BufRead, BufReader, Error, ErrorKind};
+use lazy_static::lazy_static;
+use regex::Regex;
 
-pub fn read_input(file_name: &str) -> Result<Vec<String>, Error> {
-    let path = format!("./input/{}", file_name);
-    let br = BufReader::new(File::open(path)?);
-    br.lines()
-        .map(|line| line.and_then(|v| v.parse().map_err(|e| Error::new(ErrorKind::InvalidData, e))))
-        .collect()
-}
+const INPUT: &'static str = include_str!("../input/day04.txt");
 
-fn parse_input() -> Vec<usize> {
-    read_input("day04_input.txt").unwrap()
-        .get(0).unwrap()
-        .split(',')
-        .map(|v| v.parse().unwrap())
-        .collect()
-}
-
-fn parse_data() {
-
-}
-
-struct Matrix<const LEN: usize> {
-    inner: [[usize; LEN]; LEN],
-}
-
-impl<const LEN: usize> Matrix<LEN> {
-    pub fn new() -> Matrix<LEN> {
-        return Matrix {
-            inner: [[0; LEN]; LEN],
-        };
+fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<bool>>) {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"\D+").unwrap();
     }
+
+    let lines: Vec<&str> = s.lines().collect();
+    let numbers: Vec<usize> = lines[0]
+        .split(',')
+        .map(|s| s.parse().unwrap())
+        .collect();
+
+    let matrix: Vec<Vec<usize>> = lines.iter()
+        .filter(|str| !str.contains(","))
+        .filter(|str| str.len() > 5)
+        .map(|line|
+            RE.split(line.trim())
+                .into_iter()
+                .map(|part| part.parse::<usize>().unwrap())
+                .collect()
+        ).collect();
+    let matrix_rows = matrix.len();
+    let state_grid: Vec<Vec<bool>> = vec![vec![false; 5]; matrix_rows];
+    (numbers, matrix, state_grid)
 }
 
-fn main() {
-    let inputs:Vec<usize> = parse_input();
+fn q1(s: &str) -> usize {
+    let (inputs, matrix) = parse_and_prepare(s);
     println!("{:?}", inputs);
+    println!("{:?}", matrix);
+    1
+}
+
+fn q2(s: &str) -> usize {
+    1
+}
+
+pub(crate) fn run() {
+    println!("q1={}", q1(INPUT));
+    println!("q2={}", q2(INPUT));
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const INPUT: &str = "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+
+22 13 17 11  0
+ 8  2 23  4 24
+21  9 14 16  7
+ 6 10  3 18  5
+ 1 12 20 15 19
+
+ 3 15  0  2 22
+ 9 18 13 17  5
+19  8  7 25 23
+20 11 10 24  4
+14 21 16 12  6
+
+14 21 17 24  4
+10 16 15  9 19
+18  8 23 26 20
+22 11 13  6  5
+ 2  0 12  3  7";
+
+    #[test]
+    fn q1_test() {
+        assert_eq!(q1(INPUT), 4512);
+    }
+
+    // #[test]
+    // fn q2_test() {
+    //     assert_eq!(q2(INPUT), 12);
+    // }
 }

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 const INPUT: &'static str = include_str!("../input/day09.txt");
 
 fn parse_grid(s: &str) -> Vec<Vec<u8>> {
