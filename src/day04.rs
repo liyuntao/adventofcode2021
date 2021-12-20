@@ -5,7 +5,7 @@ use regex::Regex;
 
 const INPUT: &'static str = include_str!("../input/day04.txt");
 
-fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<bool>>) {
+fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>) {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\D+").unwrap();
     }
@@ -25,15 +25,22 @@ fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<bool>>) {
                 .map(|part| part.parse::<usize>().unwrap())
                 .collect()
         ).collect();
-    let matrix_rows = matrix.len();
-    let state_grid: Vec<Vec<bool>> = vec![vec![false; 5]; matrix_rows];
-    (numbers, matrix, state_grid)
+    (numbers, matrix)
 }
 
 fn q1(s: &str) -> usize {
-    let (inputs, matrix) = parse_and_prepare(s);
-    println!("{:?}", inputs);
-    println!("{:?}", matrix);
+    let (inputs, matrix, state_grid) = parse_and_prepare(s);
+    let matrix_rows = matrix.len();
+    let mut state_grid: Vec<Vec<bool>> = vec![vec![false; 5]; matrix_rows];
+    inputs.iter().for_each(|&n| {
+        for y in 0..matrix_rows {
+            for x in 0..5 {
+                if matrix[y][x] == n {
+                    state_grid[y][x] = true;
+                }
+            }
+        }
+    });
     1
 }
 
