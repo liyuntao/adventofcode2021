@@ -27,7 +27,7 @@ fn q2(s: &str) -> usize {
 
 fn smart_range_inclusive(a: usize, b: usize) -> Box<dyn Iterator<Item=usize>> {
     if a < b {
-        Box::new((a..=b))
+        Box::new(a..=b)
     } else {
         Box::new((b..=a).rev())
     }

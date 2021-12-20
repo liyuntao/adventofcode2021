@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-
-
 fn median(numbers: &mut [i32]) -> i32 {
     numbers.sort();
     let mid = numbers.len() / 2;

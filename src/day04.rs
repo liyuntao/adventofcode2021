@@ -5,40 +5,40 @@ use regex::Regex;
 
 const INPUT: &'static str = include_str!("../input/day04.txt");
 
-fn parse_and_prepare(s: &str) -> (Vec<usize>, Vec<Vec<usize>>) {
+fn parse_input(s: &str) -> (Vec<usize>, Vec<Vec<usize>>) {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\D+").unwrap();
     }
 
     let lines: Vec<&str> = s.lines().collect();
-    let numbers: Vec<usize> = lines[0]
-        .split(',')
-        .map(|s| s.parse().unwrap())
-        .collect();
+    let numbers: Vec<usize> = lines[0].split(',').map(|s| s.parse().unwrap()).collect();
 
-    let matrix: Vec<Vec<usize>> = lines.iter()
+    let matrix: Vec<Vec<usize>> = lines
+        .iter()
         .filter(|str| !str.contains(","))
         .filter(|str| str.len() > 5)
-        .map(|line|
+        .map(|line| {
             RE.split(line.trim())
                 .into_iter()
                 .map(|part| part.parse::<usize>().unwrap())
                 .collect()
-        ).collect();
+        })
+        .collect();
     (numbers, matrix)
 }
-//0 1 2 3 4
+
 fn q1(s: &str) -> usize {
-    inner(s, false)
-}
-fn q2(s: &str) -> usize {
     inner(s, true)
 }
+fn q2(s: &str) -> usize {
+    inner(s, false)
+}
 
-fn inner(s: &str, seek_col: bool) -> usize {
-    let (inputs, matrix) = parse_and_prepare(s);
+fn inner(s: &str, peek_first: bool) -> usize {
+    let (inputs, matrix) = parse_input(s);
     let matrix_rows = matrix.len();
     let mut state_grid: Vec<Vec<bool>> = vec![vec![false; 5]; matrix_rows];
+    let mut state_array: Vec<bool> = vec![false; matrix_rows / 5];
 
     for n in inputs {
         for y in 0..matrix_rows {
@@ -48,30 +48,44 @@ fn inner(s: &str, seek_col: bool) -> usize {
                 }
                 // do complete-row checking
                 let mut is_all_set = state_grid[y].iter().all(|&mark| mark == true);
-                { // also seek col
+                {
+                    // do complete-col checking
                     let row_start = (y / 5) * 5;
                     let row_end = row_start + 5;
-                    is_all_set = is_all_set || (row_start..row_end).into_iter()
-                        .all(|y| state_grid[y][x] == true);
+                    is_all_set = is_all_set
+                        || (row_start..row_end)
+                            .into_iter()
+                            .all(|y| state_grid[y][x] == true);
                 }
-                if is_all_set {
+
+                if peek_first && is_all_set {
                     // using (x, y) seek for a 5*5
-                    let row_start = (y / 5) * 5;
-                    let row_end = row_start + 5;
-                    let mut unmark_sum = 0;
-                    for y in row_start..row_end {
-                        for x in 0..5 {
-                            if state_grid[y][x] == false {
-                                unmark_sum += matrix[y][x];
-                            }
-                        }
+                    return n * sum_of_unmark_part(y, &matrix, &state_grid);
+                } else if !peek_first && is_all_set {
+                    // peek last succ
+                    state_array[y / 5] = true;
+                    if state_array.iter().all(|&v| v == true) {
+                        return n * sum_of_unmark_part(y, &matrix, &state_grid);
                     }
-                    return n * unmark_sum;
                 }
             }
         }
     }
     0
+}
+
+fn sum_of_unmark_part(row: usize, matrix: &Vec<Vec<usize>>, state_grid: &Vec<Vec<bool>>) -> usize {
+    let row_start = (row / 5) * 5;
+    let row_end = row_start + 5;
+    let mut unmark_sum = 0;
+    for y in row_start..row_end {
+        for x in 0..5 {
+            if state_grid[y][x] == false {
+                unmark_sum += matrix[y][x];
+            }
+        }
+    }
+    return unmark_sum;
 }
 
 pub(crate) fn run() {
