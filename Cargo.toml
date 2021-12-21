@@ -6,6 +6,6 @@ authors = ["liyuntao <liyuntao58607@gmail.com>"]
 
 [dependencies]
 chrono = "0.4.6"
+itertools = "0.10.2"
 lazy_static = "1.4.0"
-#num-iter = "0.1"
 regex = "1"

@@ -1,3 +1,5 @@
+use itertools::{iproduct, Itertools};
+
 const INPUT: &'static str = include_str!("../input/day09.txt");
 
 fn parse_grid(s: &str) -> Vec<Vec<u8>> {
@@ -19,35 +21,76 @@ fn all_valid_adjacent(x: usize, y: usize, m: usize, n: usize) -> Vec<(usize, usi
         (x_i32, y_i32 - 1),
         (x_i32, y_i32 + 1),
     ]
-    .iter()
-    .filter(|&(a, b)| *a >= 0 && *b >= 0 && *a < (m as i32) && *b < (n as i32))
-    .map(|&(a, b)| (a as usize, b as usize))
-    .collect()
+        .iter()
+        .filter(|&(a, b)| *a >= 0 && *b >= 0 && *a < (m as i32) && *b < (n as i32))
+        .map(|&(a, b)| (a as usize, b as usize))
+        .collect()
 }
 
-fn q1(input: &str) -> usize {
-    let grid = parse_grid(input);
+// -> (x,y,val)
+fn all_low_pts(grid: &Vec<Vec<u8>>) -> Vec<(usize, usize, usize)> {
     let rows = grid.len();
     let cols = grid[0].len();
-    let mut res: usize = 0;
-    for y in 0..rows {
-        for x in 0..cols {
+    iproduct!(0..cols, 0..rows)
+        .filter(|&(x, y)| {
             let val = grid[y][x];
             let cnt = all_valid_adjacent(x, y, cols, rows)
                 .iter()
                 .filter(|&(a, b)| grid[*b][*a] <= val)
                 .count();
-            if cnt == 0 {
-                res = val as usize + 1 + res;
-            }
-        }
+            cnt == 0
+        })
+        .map(|(x, y)| (x, y, grid[y][x] as usize))
+        .collect()
+}
+
+fn q1(input: &str) -> usize {
+    let grid = parse_grid(input);
+    all_low_pts(&grid).iter()
+        .map(|&(x, y, val)| val + 1)
+        .sum()
+}
+
+fn q2(input: &str) -> usize {
+    let grid = parse_grid(input);
+    let mut basin_list: Vec<usize> = all_low_pts(&grid).iter()
+        .map(|&(x, y, _val)| basin_size(&grid, x, y))
+        .collect();
+    basin_list.sort();
+    basin_list[basin_list.len() - 1]
+        * basin_list[basin_list.len() - 2]
+        * basin_list[basin_list.len() - 3]
+}
+
+fn basin_size(grid: &Vec<Vec<u8>>, x: usize, y: usize) -> usize {
+    let mut state = vec![vec![false; grid[0].len()]; grid.len()];
+    dfs(grid, x, y, &mut state);
+    let rows = state.len();
+    let cols = state[0].len();
+    iproduct!(0..cols, 0..rows)
+        .filter(|&(x, y)| state[y][x] == true)
+        .count()
+}
+
+fn dfs(grid: &Vec<Vec<u8>>, x: usize, y: usize, state: &mut Vec<Vec<bool>>) {
+    let val = grid[y][x];
+    if val >= 9 {
+        return;
     }
-    println!("res {}", res);
-    res
+    state[y][x] = true;
+    let rows = grid.len();
+    let cols = grid[0].len();
+    all_valid_adjacent(x, y, cols, rows).iter()
+        .for_each(|&(a, b)| {
+            if grid[b][a] == val + 1 {
+                dfs(grid, a, b, state)
+            }
+        });
 }
 
 pub(crate) fn run() {
-    println!("q1={}", q1(INPUT))
+    println!("q1={}", q1(INPUT));
+    println!("q2={}", q2(INPUT));
 }
 
 #[cfg(test)]
@@ -63,5 +106,10 @@ mod test {
     #[test]
     fn q1_test() {
         assert_eq!(q1(INPUT), 15);
+    }
+
+    #[test]
+    fn q2_test() {
+        assert_eq!(q2(INPUT), 1134);
     }
 }
