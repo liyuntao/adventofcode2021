@@ -1,4 +1,3 @@
-
 const INPUT: &'static str = include_str!("../input/day10.txt");
 
 fn detect_corrupted_points(line: &str) -> usize {
