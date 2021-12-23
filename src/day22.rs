@@ -1,5 +1,8 @@
 extern crate regex;
 
+use std::cmp::{max, min};
+use std::collections::HashSet;
+use itertools::iproduct;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -7,19 +10,14 @@ const INPUT: &'static str = include_str!("../input/day22.txt");
 
 fn parse_line(line: &str) -> (bool, i32, i32, i32, i32, i32, i32) {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"\D+").unwrap();
+        static ref RE: Regex = Regex::new(r"x=(-?\d+)..(-?\d+),y=(-?\d+)..(-?\d+),z=(-?\d+)..(-?\d+)").unwrap();
     }
+    println!("{}", line);
     let is_on: bool = line.starts_with("on");
-    let nums: Vec<i32> = RE.split(line)
-        .into_iter()
-        .filter(|&p| p.len() > 0)
-        .map(|part| {
-            println!("part={}", part);
-            // part.parse::<i32>().unwrap()
-            1
-        })
+    let caps = RE.captures(line).unwrap();
+    let arr: Vec<i32> = (1..=6).map(|i| caps.get(i).unwrap().as_str().parse::<i32>().unwrap())
         .collect();
-    (is_on, nums[0], nums[1], nums[2], nums[3], nums[4], nums[5])
+    (is_on, arr[0], arr[1], arr[2], arr[3], arr[4], arr[5])
 }
 
 fn parse_input(input: &str) -> Vec<(bool, i32, i32, i32, i32, i32, i32)> {
@@ -27,9 +25,27 @@ fn parse_input(input: &str) -> Vec<(bool, i32, i32, i32, i32, i32, i32)> {
 }
 
 fn q1(input: &str) -> usize {
-    let tp = parse_line("x=-20..33,y=-21..23,z=-26..28");
-    println!("{:?}", tp);
-    1
+    let mut xyz: HashSet<(i32, i32, i32)> = HashSet::new();
+
+    parse_input(input).iter()
+        .for_each(|&tp| {
+            let is_on = tp.0;
+            let z1 = max(-50, tp.5);
+            let z2 = min(50, tp.6);
+            let y1 = max(-50, tp.3);
+            let y2 = min(50, tp.4);
+            let x1 = max(-50, tp.1);
+            let x2 = min(50, tp.2);
+            iproduct!(z1..=z2, y1..=y2, x1..=x2)
+                .for_each(|(x, y, z)| {
+                    if is_on {
+                        xyz.insert((x, y, z));
+                    } else {
+                        xyz.remove(&(x, y, z));
+                    }
+                });
+        });
+    xyz.len()
 }
 
 fn q2(input: &str) -> usize {
