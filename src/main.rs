@@ -20,5 +20,5 @@ mod day22;
 mod day25;
 
 fn main() {
-    day25::run();
+    day12::run();
 }

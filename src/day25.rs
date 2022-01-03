@@ -12,9 +12,9 @@ fn gen_mark_grid(grid: &Vec<Vec<char>>) -> Vec<Vec<bool>> {
     unimplemented!()
 }
 
-fn is_all_false(mark_grid: &Vec<Vec<bool>>) -> bool {
-    mark_grid.iter().all()
-}
+// fn is_all_false(mark_grid: &Vec<Vec<bool>>) -> bool {
+//     mark_grid.iter().all()
+// }
 
 fn tick_flow(grid: &mut Vec<Vec<char>>, mark_grid: Vec<Vec<bool>>) {
     unimplemented!()
@@ -23,7 +23,7 @@ fn tick_flow(grid: &mut Vec<Vec<char>>, mark_grid: Vec<Vec<bool>>) {
 fn q1(input: &str) -> usize {
     let mut grid = parse_grid(input);
     let mut step_cnt = 0;
-
+    1
 }
 
 fn q2(input: &str) -> usize {
